@@ -1,0 +1,115 @@
+proc makeObj(string $objType ){ // Save selected ocject to OBJ file(s)
+    if (`window -exists myCreateWindow`) { deleteUI -window myCreateWindow; }
+
+    string $selMesh[] = `ls -sl`;
+    string $filepaths[] = `fileDialog2 -dialogStyle 2 -fileMode 3`;
+    string $filepath = $filepaths[0];
+    string $currentPane = `paneLayout -q -pane1 viewPanes`;
+        
+    if($objType == "new"){
+        
+            error ("This function not available.");
+    }else{
+        
+        string $conResponse = `confirmDialog -title "Confirm" 
+			              -message "Select?"
+			              -button "One object"
+			              -button "Individual"
+			              -button "cancle"
+			              -defaultButton "One object"
+			              -cancelButton "No"
+			              -dismissString "No"`;
+			              
+        if( $conResponse == "Individual" ){
+            for ($obj in $selMesh){
+            string $objName;
+            string $result = `promptDialog
+                                -title "Name the object"
+                                -message $obj
+                                -text $obj
+                                -button "OK"
+                                -button "Cancel"
+                                -defaultButton "OK"
+                                -cancelButton "Cancel"
+                                -dismissString "Cancel"`;
+                if($result == "OK"){
+                    $objName = `promptDialog -query`;
+                    
+                    if($objName == "") // If name as blank will Error.
+                        error("Name not blank");
+                        
+                    string $outputDir = $filepath+"/"+$objName+".obj";
+                    string $fileExists = `file -exists -q $outputDir`;
+                    
+                    if($fileExists == 1){ // check exists OBJ file
+                            string $result = `promptDialog
+                                -title "Name the object"
+                                -message $obj
+                                -button "OK"
+                                -button "Cancel"
+                                -defaultButton "OK"
+                                -cancelButton "Cancel"
+                                -dismissString "Cancel"`;
+                                
+                            if($result == "OK"){
+                                    $objName = `promptDialog -query`;
+                            }
+                    }
+                    select -r $obj ;
+                    file -op "groups=1;ptgroups=1;materials=1;smoothing=1;normals=1" -typ "OBJexport" -es $outputDir;
+                    print("Debug: Save "+ $obj + "to " + $filepath+"/"+$objName+".obj\n");
+                }
+                if($result == "Skip"){ // When click "Skip" will stop and interrupt the loop
+                    break;
+                }
+            }
+            
+        }else{
+            string $objName;
+            string $obj = "" ;
+            for ($i in $selMesh){
+                $obj = $obj + " " + $i ;
+            }
+            string $result = `promptDialog
+                                -title "Name the object"
+                                -message "Name the group"
+                                -button "OK"
+                                -button "Cancel"
+                                -defaultButton "OK"
+                                -cancelButton "Cancel"
+                                -dismissString "Cancel"`;
+                if($result == "OK"){
+                    $objName = `promptDialog -query`;
+                    
+                    if($objName == "") // If name as blank will Error.
+                        error("Name not blank");
+                        
+                    string $outputDir = $filepath+"/"+$objName+".obj";
+                    string $fileExists = `file -exists -q $outputDir`;
+                    
+                    if($fileExists == 1){ // check exists OBJ file
+                            string $result = `promptDialog
+                                -title "Name the object"
+                                -message "Name the group"
+                                -button "OK"
+                                -button "Cancel"
+                                -defaultButton "OK"
+                                -cancelButton "Cancel"
+                                -dismissString "Cancel"`;
+                                
+                            if($result == "OK"){
+                                    $objName = `promptDialog -query`;
+                            }
+                    }
+                    string $tmp = "select -r " + $obj + ";\n" ;
+                    print $tmp;
+                    select -r $selMesh;
+
+                    file -op "groups=1;ptgroups=1;materials=1;smoothing=1;normals=1" -typ "OBJexport" -es $outputDir;
+                    print("Debug: Save "+ $obj + "to " + $filepath+"/"+$objName+".obj\n");
+        }
+      }
+   }
+}
+
+makeObj("now");
